@@ -249,8 +249,9 @@ class Linear(Layer):
 
         # TODO: Compute the affine transform
         # ====== YOUR CODE: ======
+        x = x.reshape(x.shape[0], -1)
         self.grad_cache["x"] = x
-        out = torch.matmul(x, self.w.T) + self.b
+        out = x @ self.w.T + self.b
         # ========================
         return out
 
@@ -512,18 +513,3 @@ class MLP(Layer):
     def __repr__(self):
         return f"MLP, {self.sequence}"
 
-
-
-
-if __name__ =='__main__':
-    N = 100
-    in_features = 200
-    num_classes = 10
-    eps = 1e-6
-    # Test LeakyReLU
-    alpha = 0.1
-    lrelu = LeakyReLU(alpha=alpha)
-    x_test = torch.randn(N, in_features)
-
-    # Test forward pass
-    z = lrelu(x_test)
