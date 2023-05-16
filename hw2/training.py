@@ -25,9 +25,9 @@ class Trainer(abc.ABC):
     """
 
     def __init__(
-        self,
-        model: nn.Module,
-        device: Optional[torch.device] = None,
+            self,
+            model: nn.Module,
+            device: Optional[torch.device] = None,
     ):
         """
         Initialize the trainer.
@@ -41,14 +41,14 @@ class Trainer(abc.ABC):
             model.to(self.device)
 
     def fit(
-        self,
-        dl_train: DataLoader,
-        dl_test: DataLoader,
-        num_epochs: int,
-        checkpoints: str = None,
-        early_stopping: int = None,
-        print_every: int = 1,
-        **kw,
+            self,
+            dl_train: DataLoader,
+            dl_test: DataLoader,
+            num_epochs: int,
+            checkpoints: str = None,
+            early_stopping: int = None,
+            print_every: int = 1,
+            **kw,
     ) -> FitResult:
         """
         Trains the model for multiple epochs with a given training set,
@@ -74,20 +74,20 @@ class Trainer(abc.ABC):
         for epoch in range(num_epochs):
             verbose = False  # pass this to train/test_epoch.
             if print_every > 0 and (
-                epoch % print_every == 0 or epoch == num_epochs - 1
+                    epoch % print_every == 0 or epoch == num_epochs - 1
             ):
                 verbose = True
-            self._print(f"--- EPOCH {epoch+1}/{num_epochs} ---", verbose)
+            self._print(f"--- EPOCH {epoch + 1}/{num_epochs} ---", verbose)
 
             # TODO: Train & evaluate for one epoch
             #  - Use the train/test_epoch methods.
             #  - Save losses and accuracies in the lists above.
             # ====== YOUR CODE: ======
-            train_loss_epoch ,train_acc_epoch = self.train_epoch(dl_train, verbose=verbose)
-            test_loss_epoch ,test_acc_epoch = self.test_epoch(dl_test, verbose=verbose)
-            train_loss.append(sum(train_loss_epoch)/len(train_loss_epoch))
+            train_loss_epoch, train_acc_epoch = self.train_epoch(dl_train, verbose=verbose)
+            test_loss_epoch, test_acc_epoch = self.test_epoch(dl_test, verbose=verbose)
+            train_loss.append(sum(train_loss_epoch) / len(train_loss_epoch))
             train_acc.append(train_acc_epoch)
-            test_loss.append(sum(test_loss_epoch)/len(test_loss_epoch))
+            test_loss.append(sum(test_loss_epoch) / len(test_loss_epoch))
             test_acc.append(test_acc_epoch)
             # ========================
 
@@ -170,10 +170,10 @@ class Trainer(abc.ABC):
 
     @staticmethod
     def _foreach_batch(
-        dl: DataLoader,
-        forward_fn: Callable[[Any], BatchResult],
-        verbose=True,
-        max_batches=None,
+            dl: DataLoader,
+            forward_fn: Callable[[Any], BatchResult],
+            verbose=True,
+            max_batches=None,
     ) -> EpochResult:
         """
         Evaluates the given forward-function on batches from the given
@@ -229,11 +229,11 @@ class ClassifierTrainer(Trainer):
     """
 
     def __init__(
-        self,
-        model: Classifier,
-        loss_fn: nn.Module,
-        optimizer: Optimizer,
-        device: Optional[torch.device] = None,
+            self,
+            model: Classifier,
+            loss_fn: nn.Module,
+            optimizer: Optimizer,
+            device: Optional[torch.device] = None,
     ):
         """
         Initialize the trainer.
@@ -262,10 +262,18 @@ class ClassifierTrainer(Trainer):
         #  - Update parameters
         #  - Classify and calculate number of correct predictions
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        forward_results = self.model.forward(X)
+        self.optimizer.zero_grad()
+        batch_loss = self.loss_fn(forward_results, y)
+        loss_grads = batch_loss.backward()
+        self.optimizer.step()
+
+        # Calculate number of correct predictions
+        y_pred = self.model.classify(X)
+        num_correct = torch.sum(y_pred == y).item()
         # ========================
 
-        return BatchResult(batch_loss, num_correct)
+        return BatchResult(batch_loss.item(), num_correct)
 
     def test_batch(self, batch) -> BatchResult:
         X, y = batch
@@ -282,7 +290,11 @@ class ClassifierTrainer(Trainer):
             #  - Forward pass
             #  - Calculate number of correct predictions
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            # Forward pass
+            y_pred = self.model.forward(X)
+            batch_loss = self.loss_fn(y_pred, y).item()
+
+            num_correct = torch.sum(torch.argmax(y_pred, dim=1) == y)
             # ========================
 
         return BatchResult(batch_loss, num_correct)
@@ -308,11 +320,11 @@ class LayerTrainer(Trainer):
         #    not a tensor) as num_correct.
         # ====== YOUR CODE: ======
         results = self.model.forward(X)
-        self.optimizer.zero_grad() # reset gradients
+        self.optimizer.zero_grad()  # reset gradients
         loss = self.loss_fn(results, y)
-        loss_grads = self.loss_fn.backward() # calculate gradients
-        self.model.backward(loss_grads) 
-        self.optimizer.step() # update weights
+        loss_grads = self.loss_fn.backward()  # calculate gradients
+        self.model.backward(loss_grads)
+        self.optimizer.step()  # update weights
         num_correct = torch.sum(torch.argmax(results, dim=1) == y)
         # ========================
 
