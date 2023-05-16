@@ -9,7 +9,7 @@ import torchvision
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 
-from cs236781.train_results import FitResult
+from cs236781.train_results import FitResult, EpochResult
 
 from .cnn import CNN, ResNet
 from .mlp import MLP
@@ -49,16 +49,22 @@ def mlp_experiment(
     hidden_dims.append(2)
     nonlins = ['relu'] * (depth-1)
     nonlins.append('softmax')
-    mlp_model = MLP(in_dim=2, dims=hidden_dims, nonlins=nonlins)
-    trainer = ClassifierTrainer(mlp_model, torch.nn.CrossEntropyLoss, torch.optim.Adam)
+    hp_optim = dict(lr=5e-3, weight_decay=1e-2, momentum=0.9)
+
+    mlp = MLP(in_dim=2, dims=hidden_dims, nonlins=nonlins)
+    model = BinaryClassifier(mlp)
+
+    trainer = ClassifierTrainer(model, torch.nn.CrossEntropyLoss(), torch.optim.SGD(params=model.parameters(), **hp_optim))
     fit_res: FitResult = trainer.fit(dl_train, dl_valid, n_epochs, print_every=0)
-    classifier = BinaryClassifier(mlp_model)
-    optimal_thresh = select_roc_thresh(classifier, *dl_valid.dataset.tensors)
-    classifier.threshold = optimal_thresh
-    trainer.test_epoch(dl_test, verbose=False)
-    raise NotImplementedError()
+
+    optimal_thresh = select_roc_thresh(model, *dl_valid.dataset.tensors)
+    model.threshold = optimal_thresh
+
+    test_epoch_res: EpochResult = trainer.test_epoch(dl_test, verbose=False)
+    valid_acc = fit_res.test_acc[-1]
+    test_acc = test_epoch_res.accuracy
     # ========================
-    return model, thresh, valid_acc, test_acc
+    return model, optimal_thresh, valid_acc, test_acc
 
 
 def cnn_experiment(
