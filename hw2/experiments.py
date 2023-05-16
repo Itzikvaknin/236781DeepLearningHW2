@@ -45,17 +45,6 @@ def mlp_experiment(
     #  Note: use print_every=0, verbose=False, plot=False where relevant to prevent
     #  output from this function.
     # ====== YOUR CODE: ======
-    hidden_dims = [width]*(depth-1)
-    hidden_dims.append(2)
-    nonlins = ['relu'] * (depth-1)
-    nonlins.append('softmax')
-    mlp_model = MLP(in_dim=2, dims=hidden_dims, nonlins=nonlins)
-    trainer = ClassifierTrainer(mlp_model, torch.nn.CrossEntropyLoss, torch.optim.Adam)
-    fit_res: FitResult = trainer.fit(dl_train, dl_valid, n_epochs, print_every=0)
-    classifier = BinaryClassifier(mlp_model)
-    optimal_thresh = select_roc_thresh(classifier, *dl_valid.dataset.tensors)
-    classifier.threshold = optimal_thresh
-    trainer.test_epoch(dl_test, verbose=False)
     raise NotImplementedError()
     # ========================
     return model, thresh, valid_acc, test_acc
