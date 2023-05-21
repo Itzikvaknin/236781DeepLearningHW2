@@ -80,11 +80,57 @@ class CNN(nn.Module):
         #  Note: If N is not divisible by P, then N mod P additional
         #  CONV->ACTs should exist at the end, without a POOL after them.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        depth = len(self.channels)
+        # assertions
+        assert self.activation_type in ACTIVATIONS
+        assert self.pooling_type in ['max', 'avg']
 
+        for i in range(depth):
+            out_channels = self.channels[i]
+            conv_layer = nn.Conv2d(in_channels, out_channels, **self.conv_params) #TODO: check double star
+            in_channels = out_channels
+            activation_layer = ACTIVATIONS[self.activation_type](**self.activation_params)
+            layers.append(conv_layer)
+            layers.append(activation_layer)
+            if (i + 1) % self.pool_every != 0 :
+                continue
+            if self.pooling_type == 'avg':
+                pooling_layer = nn.AvgPool2d(**self.pooling_params)
+            else:
+                pooling_layer = nn.MaxPool2d(**self.pooling_params)
+            layers.append(pooling_layer)
         # ========================
         seq = nn.Sequential(*layers)
         return seq
+    
+    @staticmethod
+    def calculate_conv2d_output_shape(input_shape, out_channels, kernel_size, stride=1, padding=0):
+        """
+        Calculates the output shape of a convolutional layer.
+
+        Args:
+            input_shape (tuple): Shape of the input tensor (channels, height, width).
+            out_channels (int): Number of output channels (filters).
+            kernel_size (int or tuple): Size of the convolutional kernel.
+            stride (int or tuple, optional): Stride of the convolution. Defaults to 1.
+            padding (int or tuple, optional): Padding applied to the input. Defaults to 0.
+
+        Returns:
+            tuple: Output shape of the convolutional layer (channels, height, width).
+        """
+        # Get input shape dimensions
+        C, H, W = input_shape
+
+        # Calculate output height and width
+        output_height = ((H + 2 * padding - kernel_size) // stride) + 1
+        output_width = ((W + 2 * padding - kernel_size) // stride) + 1
+
+        # Return output shape
+        return tuple([out_channels, output_height, output_width])
+
+    
+
+
 
     def _n_features(self) -> int:
         """
@@ -95,7 +141,27 @@ class CNN(nn.Module):
         rng_state = torch.get_rng_state()
         try:
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            input_shape = tuple(self.in_size)
+            for layer in self.feature_extractor:
+                #pre-proccessing layer parameters
+                if not isinstance(layer, nn.Conv2d) and not isinstance(layer, nn.MaxPool2d) and not isinstance(layer, nn.AvgPool2d):
+                    continue
+                layer_params = {'kernel_size': layer.kernel_size, 'stride': layer.stride, 'padding': layer.padding}
+                for key,value in layer_params.items():
+                    if isinstance(value, int):
+                        continue
+                    if len(value) == 2:
+                        assert value[0] == value[1] 
+                        layer_params[key] = value[0]
+                
+                if isinstance(layer, nn.Conv2d):
+                    input_shape = CNN.calculate_conv2d_output_shape(input_shape, layer.out_channels , layer_params['kernel_size'], layer_params['stride'], layer_params['padding'])
+                elif isinstance(layer, nn.MaxPool2d) or isinstance(layer, nn.AvgPool2d):
+                    input_shape = (input_shape[0], input_shape[1] // layer_params['kernel_size'], input_shape[2] // layer_params['kernel_size']) # calculate output shape of pooling layer
+            return input_shape[0] * input_shape[1] * input_shape[2]
+            # raise NotImplementedError()
+            # zeros_input = torch.zeros(self.in_size).unsqueeze(dim=0)
+            # return self.feature_extractor(zeros_input).numel()
             # ========================
         finally:
             torch.set_rng_state(rng_state)
@@ -109,7 +175,11 @@ class CNN(nn.Module):
         #  - The last Linear layer should have an output dim of out_classes.
         mlp: MLP = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        hidden_dims = [*self.hidden_dims, self.out_classes]
+        activations = [*[ACTIVATIONS[self.activation_type](**self.activation_params)] * len(self.hidden_dims)]
+        activations.append('none')
+        mlp = MLP(self._n_features(), hidden_dims, activations)
+        # raise NotImplementedError()
         # ========================
         return mlp
 
@@ -119,7 +189,10 @@ class CNN(nn.Module):
         #  return class scores.
         out: Tensor = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        features = self.feature_extractor(x)
+        features = features.view(features.size(0), -1)
+        out = self.mlp(features)
+        # raise NotImplementedError()
         # ========================
         return out
 

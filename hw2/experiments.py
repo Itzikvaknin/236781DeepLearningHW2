@@ -47,9 +47,10 @@ def mlp_experiment(
     # ====== YOUR CODE: ======
     hidden_dims = [width]*(depth-1)
     hidden_dims.append(2)
-    nonlins = ['relu'] * (depth-1)
-    nonlins.append('softmax')
-    hp_optim = dict(lr=5e-3, weight_decay=1e-2, momentum=0.9)
+    nonlins = ['relu'] * (depth - 1)
+    nonlins.append('none')
+
+    hp_optim = dict(lr=5e-3, weight_decay=1e-2, momentum=0.85)
 
     mlp = MLP(in_dim=2, dims=hidden_dims, nonlins=nonlins)
     model = BinaryClassifier(mlp)

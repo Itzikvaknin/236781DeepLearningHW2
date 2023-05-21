@@ -76,15 +76,16 @@ class MLP(nn.Module):
         # TODO: Implement the model's forward pass. Make sure the input and output
         #  shapes are as expected.
         # ====== YOUR CODE: ======
-        assert x.shape[-1] == self.in_dim, f"Input shape was {x.shape[-1]} but expected {self.in_dim}"
+        # assert x.shape[-1] == self.in_dim, f"Input shape was {x.shape[-1]} but expected {self.in_dim}"
 
-        i = 0
-        while i < len(self.fc_layers):
-            layer = self.fc_layers[i]
-            activation = self.fc_layers[i + 1]
-            x = activation(layer(x))
-            i += 2
+        # i = 0
+        # while i < len(self.fc_layers):
+        #     layer = self.fc_layers[i]
+        #     activation = self.fc_layers[i + 1]
+        #     x = activation(layer(x))
+        #     i += 2
 
+        x = self.fc_layers.forward(x)
         assert x.shape[-1] == self.out_dim, f"Output shape was {x.shape[-1]} but expected {self.out_dim}"
         return x
         # ========================
@@ -94,7 +95,7 @@ class MLP(nn.Module):
         hidden_layers_dims_except_input = dims[1:]
         for hidden_in_dim, hidden_out_dim in zip(hidden_layers_dims_except_output, hidden_layers_dims_except_input):
             layer = nn.Linear(hidden_in_dim, hidden_out_dim, bias=True)
-            nn.init.normal_(layer.weight, 0, 1)
+            # nn.init.normal_(layer.weight, 0, 1)
             self.layers.append(layer)
 
     def _create_activations(self, nonLins) -> None:
