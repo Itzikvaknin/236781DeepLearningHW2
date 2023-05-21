@@ -76,17 +76,18 @@ class MLP(nn.Module):
         # TODO: Implement the model's forward pass. Make sure the input and output
         #  shapes are as expected.
         # ====== YOUR CODE: ======
-        assert x.shape[-1] == self.in_dim, f"Input shape was {x.shape[-1]} but expected {self.in_dim}"
+        # assert x.shape[-1] == self.in_dim, f"Input shape was {x.shape[-1]} but expected {self.in_dim}"
 
-        i = 0
-        while i < len(self.fc_layers):
-            layer = self.fc_layers[i]
-            activation = self.fc_layers[i + 1]
-            x = activation(layer(x))
-            i += 2
+        # i = 0
+        # while i < len(self.fc_layers):
+        #     layer = self.fc_layers[i]
+        #     activation = self.fc_layers[i + 1]
+        #     x = activation(layer(x))
+        #     i += 2
 
-        assert x.shape[-1] == self.out_dim, f"Output shape was {x.shape[-1]} but expected {self.out_dim}"
-        return x
+        # assert x.shape[-1] == self.out_dim, f"Output shape was {x.shape[-1]} but expected {self.out_dim}"
+        return self.fc_layers(x)
+        # return x
         # ========================
 
     def _create_layers(self, dims) -> None:
