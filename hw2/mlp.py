@@ -95,7 +95,7 @@ class MLP(nn.Module):
         hidden_layers_dims_except_input = dims[1:]
         for hidden_in_dim, hidden_out_dim in zip(hidden_layers_dims_except_output, hidden_layers_dims_except_input):
             layer = nn.Linear(hidden_in_dim, hidden_out_dim, bias=True)
-            nn.init.normal_(layer.weight, 0, 1)
+            # nn.init.normal_(layer.weight, 0, 1)
             self.layers.append(layer)
 
     def _create_activations(self, nonLins) -> None:
