@@ -81,19 +81,22 @@ class CNN(nn.Module):
         #  CONV->ACTs should exist at the end, without a POOL after them.
         # ====== YOUR CODE: ======
         depth = len(self.channels)
+
         # assertions
+        assert depth % self.pool_every == 0
         assert self.activation_type in ACTIVATIONS
         assert self.pooling_type in ['max', 'avg']
 
-        for i in range(depth):
-            out_channels = self.channels[i]
-            conv_layer = nn.Conv2d(in_channels, out_channels, **self.conv_params) #TODO: check double star
-            in_channels = out_channels
-            activation_layer = ACTIVATIONS[self.activation_type](**self.activation_params)
-            layers.append(conv_layer)
-            layers.append(activation_layer)
-            if (i + 1) % self.pool_every != 0 :
-                continue
+
+        num_pools = depth // self.pool_every
+        for i in range(num_pools):
+            for j in range(self.pool_every):
+                out_channels = self.channels[i * self.pool_every + j]
+                conv_layer = nn.Conv2d(in_channels, out_channels, **self.conv_params) #TODO: check double star
+                in_channels = out_channels
+                activation_layer = ACTIVATIONS[self.activation_type](**self.activation_params)
+                layers.append(conv_layer)
+                layers.append(activation_layer)
             if self.pooling_type == 'avg':
                 pooling_layer = nn.AvgPool2d(**self.pooling_params)
             else:
@@ -143,7 +146,6 @@ class CNN(nn.Module):
             # ====== YOUR CODE: ======
             input_shape = tuple(self.in_size)
             for layer in self.feature_extractor:
-                #pre-proccessing layer parameters
                 if not isinstance(layer, nn.Conv2d) and not isinstance(layer, nn.MaxPool2d) and not isinstance(layer, nn.AvgPool2d):
                     continue
                 layer_params = {'kernel_size': layer.kernel_size, 'stride': layer.stride, 'padding': layer.padding}
@@ -160,8 +162,6 @@ class CNN(nn.Module):
                     input_shape = (input_shape[0], input_shape[1] // layer_params['kernel_size'], input_shape[2] // layer_params['kernel_size']) # calculate output shape of pooling layer
             return input_shape[0] * input_shape[1] * input_shape[2]
             # raise NotImplementedError()
-            # zeros_input = torch.zeros(self.in_size).unsqueeze(dim=0)
-            # return self.feature_extractor(zeros_input).numel()
             # ========================
         finally:
             torch.set_rng_state(rng_state)
@@ -175,10 +175,7 @@ class CNN(nn.Module):
         #  - The last Linear layer should have an output dim of out_classes.
         mlp: MLP = None
         # ====== YOUR CODE: ======
-        hidden_dims = [*self.hidden_dims, self.out_classes]
-        activations = [*[ACTIVATIONS[self.activation_type](**self.activation_params)] * len(self.hidden_dims)]
-        activations.append('none')
-        mlp = MLP(self._n_features(), hidden_dims, activations)
+        mlp = MLP(self._n_features(), self.hidden_dims, [self.activation_type]*len(self.hidden_dims))
         # raise NotImplementedError()
         # ========================
         return mlp
@@ -190,8 +187,7 @@ class CNN(nn.Module):
         out: Tensor = None
         # ====== YOUR CODE: ======
         features = self.feature_extractor(x)
-        features = features.view(features.size(0), -1)
-        out = self.mlp(features)
+        out = self.mlp(features.view(features.shape[0], -1))
         # raise NotImplementedError()
         # ========================
         return out

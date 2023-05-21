@@ -153,7 +153,7 @@ def part3_arch_hp():
     # TODO: Tweak the MLP architecture hyperparameters.
     # ====== YOUR CODE: ======
     n_layers = 3
-    hidden_dims = 100
+    hidden_dims = 6
     activation = "relu"
     out_activation = "softmax"
     # ========================
