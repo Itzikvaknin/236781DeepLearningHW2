@@ -85,9 +85,9 @@ class MLP(nn.Module):
         #     x = activation(layer(x))
         #     i += 2
 
-        # assert x.shape[-1] == self.out_dim, f"Output shape was {x.shape[-1]} but expected {self.out_dim}"
-        return self.fc_layers(x)
-        # return x
+        x = self.fc_layers.forward(x)
+        assert x.shape[-1] == self.out_dim, f"Output shape was {x.shape[-1]} but expected {self.out_dim}"
+        return x
         # ========================
 
     def _create_layers(self, dims) -> None:
