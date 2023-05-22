@@ -141,27 +141,8 @@ class CNN(nn.Module):
         rng_state = torch.get_rng_state()
         try:
             # ====== YOUR CODE: ======
-            input_shape = tuple(self.in_size)
-            for layer in self.feature_extractor:
-                #pre-proccessing layer parameters
-                if not isinstance(layer, nn.Conv2d) and not isinstance(layer, nn.MaxPool2d) and not isinstance(layer, nn.AvgPool2d):
-                    continue
-                layer_params = {'kernel_size': layer.kernel_size, 'stride': layer.stride, 'padding': layer.padding}
-                for key,value in layer_params.items():
-                    if isinstance(value, int):
-                        continue
-                    if len(value) == 2:
-                        assert value[0] == value[1] 
-                        layer_params[key] = value[0]
-                
-                if isinstance(layer, nn.Conv2d):
-                    input_shape = CNN.calculate_conv2d_output_shape(input_shape, layer.out_channels , layer_params['kernel_size'], layer_params['stride'], layer_params['padding'])
-                elif isinstance(layer, nn.MaxPool2d) or isinstance(layer, nn.AvgPool2d):
-                    input_shape = (input_shape[0], input_shape[1] // layer_params['kernel_size'], input_shape[2] // layer_params['kernel_size']) # calculate output shape of pooling layer
-            return input_shape[0] * input_shape[1] * input_shape[2]
-            # raise NotImplementedError()
-            # zeros_input = torch.zeros(self.in_size).unsqueeze(dim=0)
-            # return self.feature_extractor(zeros_input).numel()
+            zeros_input = torch.zeros(self.in_size).unsqueeze(dim=0)
+            return self.feature_extractor(zeros_input).numel()
             # ========================
         finally:
             torch.set_rng_state(rng_state)
@@ -252,14 +233,41 @@ class ResidualBlock(nn.Module):
         #  - Don't create layers which you don't use! This will prevent
         #    correct comparison in the test.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        main_path_layers = []
+        shortcut_path_layers = []
+        depth = len(channels)
+        in_channels_loop = in_channels
+        for i in range(depth):
+            
+            conv_layer = nn.Conv2d(in_channels_loop, channels[i], kernel_sizes[i], padding='same')
+            in_channels_loop = channels[i]
+            activation_layer = ACTIVATIONS[activation_type](**activation_params)
+            main_path_layers.append(conv_layer)
+            
+            if i != depth - 1:
+                if dropout > 0:
+                    dropout_layer = nn.Dropout2d(dropout)
+                    main_path_layers.append(dropout_layer)
+                if batchnorm:
+                    batchnorm_layer = nn.BatchNorm2d(channels[i])
+                    main_path_layers.append(batchnorm_layer)
+                main_path_layers.append(activation_layer)
+
+            
+        self.main_path = nn.Sequential(*main_path_layers)
+        # ========================
+        shortcut_path_layers = [nn.Identity()]
+        if in_channels != channels[-1]:
+            shortcut_path_layers.append(nn.Conv2d(in_channels, channels[-1], kernel_size=1, bias=False ))
+        self.shortcut_path = nn.Sequential(*shortcut_path_layers)
+        
         # ========================
 
     def forward(self, x: Tensor):
         # TODO: Implement the forward pass. Save the main and residual path to `out`.
         out: Tensor = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        out = self.main_path(x) + self.shortcut_path(x)
         # ========================
         out = torch.relu(out)
         return out
@@ -301,7 +309,9 @@ class ResidualBottleneckBlock(ResidualBlock):
         #  Initialize the base class in the right way to produce the bottleneck block
         #  architecture.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        channels = [inner_channels[0], *inner_channels, in_out_channels]
+        kernel_sizes = [1, *inner_kernel_sizes, 1]
+        super().__init__(in_channels=in_out_channels, channels=channels, kernel_sizes=kernel_sizes, **kwargs)
         # ========================
 
 
@@ -350,7 +360,31 @@ class ResNet(CNN):
         #    2 + len(inner_channels). [1 for each 1X1 proection convolution] + [# inner convolutions].
         # - Use batchnorm and dropout as requested.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+        depth = len(self.channels)
+        # assertions
+        assert self.activation_type in ACTIVATIONS
+        assert self.pooling_type in ['max', 'avg']
+        pooling_number = depth // self.pool_every
+        
+        for i in range(pooling_number):
+            #setup for residual block
+            res_type = ResidualBlock
+            channels = self.channels[i * self.pool_every: (i + 1) * self.pool_every]
+            if self.bottleneck and in_channels == self.channels[i * self.pool_every]:
+                #setup for bottleneck block
+                res_type = ResidualBottleneckBlock
+                channels = channels[1:-1]
+            res_block = res_type(in_channels, channels, [3] * len(channels), batchnorm=self.batchnorm, dropout=self.dropout, activation_type=self.activation_type, activation_params=self.activation_params)
+            in_channels = self.channels[i * self.pool_every]
+            layers.append(res_block)
+            if self.pooling_type == 'avg':
+                pooling_layer = nn.AvgPool2d(**self.pooling_params)
+            else:
+                pooling_layer = nn.MaxPool2d(**self.pooling_params)
+            layers.append(pooling_layer)
+        if depth % self.pool_every != 0:
+            layers.append(res_type(self.channels[pooling_number * self.pool_every-1], self.channels[pooling_number * self.pool_every:], [3] * len(self.channels[pooling_number * self.pool_every:]), batchnorm=self.batchnorm, dropout=self.dropout, activation_type=self.activation_type, activation_params=self.activation_params))
         # ========================
         seq = nn.Sequential(*layers)
         return seq
