@@ -83,8 +83,8 @@ class Trainer(abc.ABC):
             #  - Use the train/test_epoch methods.
             #  - Save losses and accuracies in the lists above.
             # ====== YOUR CODE: ======
-            train_loss_epoch, train_acc_epoch = self.train_epoch(dl_train, verbose=verbose)
-            test_loss_epoch, test_acc_epoch = self.test_epoch(dl_test, verbose=verbose)
+            train_loss_epoch, train_acc_epoch = self.train_epoch(dl_train, verbose=verbose, **kw)
+            test_loss_epoch, test_acc_epoch = self.test_epoch(dl_test, verbose=verbose, **kw)
             train_loss.append(sum(train_loss_epoch) / len(train_loss_epoch))
             train_acc.append(train_acc_epoch)
             test_loss.append(sum(test_loss_epoch) / len(test_loss_epoch))
@@ -292,12 +292,12 @@ class ClassifierTrainer(Trainer):
             # ====== YOUR CODE: ======
             # Forward pass
             y_pred = self.model.forward(X)
-            batch_loss = self.loss_fn(y_pred, y).item()
+            batch_loss = self.loss_fn(y_pred, y)
 
             num_correct = torch.sum(torch.argmax(y_pred, dim=1) == y)
             # ========================
 
-        return BatchResult(batch_loss, num_correct)
+        return BatchResult(batch_loss.item(), num_correct.item())
 
 
 class LayerTrainer(Trainer):
