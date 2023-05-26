@@ -99,11 +99,13 @@ class Trainer(abc.ABC):
             #    the checkpoints argument.
             # if best_acc is None or test_result.accuracy > best_acc:
             #     # ====== YOUR CODE: ======
-            #     raise NotImplementedError()
-            #     # ========================
-            # else:
-            #     # ====== YOUR CODE: ======
-            #     raise NotImplementedError()
+            if checkpoints is not None:
+                self.save_checkpoint(checkpoints)
+            if best_acc is None or test_acc_epoch > best_acc:
+                best_acc = test_acc_epoch
+                epochs_without_improvement = 0
+            else:
+                epochs_without_improvement += 1
             #     # ========================
 
         return FitResult(actual_num_epochs, train_loss, train_acc, test_loss, test_acc)
