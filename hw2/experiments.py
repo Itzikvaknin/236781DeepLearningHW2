@@ -26,12 +26,12 @@ MODEL_TYPES = {
 
 
 def mlp_experiment(
-    depth: int,
-    width: int,
-    dl_train: DataLoader,
-    dl_valid: DataLoader,
-    dl_test: DataLoader,
-    n_epochs: int,
+        depth: int,
+        width: int,
+        dl_train: DataLoader,
+        dl_valid: DataLoader,
+        dl_test: DataLoader,
+        n_epochs: int,
 ):
     # TODO:
     #  - Create a BinaryClassifier model.
@@ -45,7 +45,7 @@ def mlp_experiment(
     #  Note: use print_every=0, verbose=False, plot=False where relevant to prevent
     #  output from this function.
     # ====== YOUR CODE: ======
-    hidden_dims = [width]*(depth-1)
+    hidden_dims = [width] * (depth - 1)
     hidden_dims.append(2)
     nonlins = ['relu'] * (depth - 1)
     nonlins.append('none')
@@ -55,7 +55,8 @@ def mlp_experiment(
     mlp = MLP(in_dim=2, dims=hidden_dims, nonlins=nonlins)
     model = BinaryClassifier(mlp)
 
-    trainer = ClassifierTrainer(model, torch.nn.CrossEntropyLoss(), torch.optim.SGD(params=model.parameters(), **hp_optim))
+    trainer = ClassifierTrainer(model, torch.nn.CrossEntropyLoss(),
+                                torch.optim.SGD(params=model.parameters(), **hp_optim))
     fit_res: FitResult = trainer.fit(dl_train, dl_valid, n_epochs, print_every=0)
 
     optimal_thresh = select_roc_thresh(model, *dl_valid.dataset.tensors)
@@ -69,27 +70,27 @@ def mlp_experiment(
 
 
 def cnn_experiment(
-    run_name,
-    out_dir="./results",
-    seed=None,
-    device=None,
-    # Training params
-    bs_train=128,
-    bs_test=None,
-    batches=100,
-    epochs=100,
-    early_stopping=3,
-    checkpoints=None,
-    lr=1e-3,
-    reg=1e-3,
-    # Model params
-    filters_per_layer=[64],
-    layers_per_block=2,
-    pool_every=2,
-    hidden_dims=[1024],
-    model_type="cnn",
-    # You can add extra configuration for your experiments here
-    **kw,
+        run_name,
+        out_dir="./results",
+        seed=None,
+        device=None,
+        # Training params
+        bs_train=128,
+        bs_test=None,
+        batches=100,
+        epochs=100,
+        early_stopping=3,
+        checkpoints=None,
+        lr=1e-3,
+        reg=1e-3,
+        # Model params
+        filters_per_layer=[64],
+        layers_per_block=2,
+        pool_every=2,
+        hidden_dims=[1024],
+        model_type="cnn",
+        # You can add extra configuration for your experiments here
+        **kw,
 ):
     """
     Executes a single run of a Part3 experiment with a single configuration.
@@ -125,10 +126,32 @@ def cnn_experiment(
     #   for you automatically.
     fit_res = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    dl_train = DataLoader(ds_train, bs_train, shuffle=True)
+    dl_test = DataLoader(ds_test, bs_test, shuffle=False)
+    num_out_classes = 10  # CIFAR-10 is used for experiments and has 10 classes.
+    in_size = ds_train[0][0].shape
+    channels = _create_channels_cnn_experiment(layers_per_block, filters_per_layer)
+    conv_params = dict(kernel_size=3, padding=1)
+    pooling_params = dict(kernel_size=2)
+    loss_fn = torch.nn.CrossEntropyLoss()
+    model = model_cls(in_size, num_out_classes, channels, pool_every, hidden_dims, conv_params=conv_params,
+                      pooling_params=pooling_params)
+    optimizer = torch.optim.Adam(params=model.parameters(), lr=lr, weight_decay=reg)
+    classifier = ArgMaxClassifier(model).to(device)
+    trainer = ClassifierTrainer(classifier, loss_fn, optimizer, device)
+    fit_res = trainer.fit(dl_train, dl_test, epochs, checkpoints, early_stopping,
+                          max_batches=batches)  # max_batches is used inside _foreach_batch in training.
     # ========================
 
     save_experiment(run_name, out_dir, cfg, fit_res)
+
+
+def _create_channels_cnn_experiment(layers_per_block, filters_per_layer):
+    channels = []
+    for k in filters_per_layer:
+        channels.append([k] * layers_per_block)
+    flattened_channels = itertools.chain.from_iterable(channels)
+    return list(flattened_channels)
 
 
 def save_experiment(run_name, out_dir, cfg, fit_res):
@@ -272,6 +295,7 @@ def parse_cli():
 
 
 if __name__ == "__main__":
+    cnn_experiment()
     parsed_args = parse_cli()
     subcmd_fn = parsed_args.subcmd_fn
     del parsed_args.subcmd_fn
