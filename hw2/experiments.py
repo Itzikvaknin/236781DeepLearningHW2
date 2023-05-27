@@ -354,6 +354,13 @@ def parse_cli():
 
 
 if __name__ == "__main__":
+    #Experiment 1_1
+    ks = [32, 64]
+    ls = [2, 4, 8, 16]
+    for k in ks:
+        for l in ls:
+            cnn_experiment(run_name=f'exp1_1_L{l}_K{k}', filters_per_layer=[k], layers_per_block=l, pool_every=3,
+                           hidden_dims=[100])
     parsed_args = parse_cli()
     subcmd_fn = parsed_args.subcmd_fn
     del parsed_args.subcmd_fn
