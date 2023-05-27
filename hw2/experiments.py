@@ -6,7 +6,7 @@ import random
 import argparse
 import itertools
 import torchvision
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchvision.datasets import CIFAR10
 
 from cs236781.train_results import FitResult, EpochResult
@@ -72,7 +72,7 @@ def mlp_experiment(
 def cnn_experiment(
         run_name,
         out_dir="./results",
-        seed=None,
+        seed=43, #Originally None
         device=None,
         # Training params
         bs_train=128,
@@ -90,6 +90,7 @@ def cnn_experiment(
         hidden_dims=[1024],
         model_type="cnn",
         # You can add extra configuration for your experiments here
+        cross_validation=False,
         **kw,
 ):
     """
@@ -134,6 +135,57 @@ def cnn_experiment(
     conv_params = dict(kernel_size=3, padding=1)
     pooling_params = dict(kernel_size=2)
     loss_fn = torch.nn.CrossEntropyLoss()
+
+    if cross_validation:
+        val_size = 5000
+        train_size = len(ds_train) - val_size
+        cross_validation_train_set, cross_validation_val_set = random_split(ds_train, [train_size, val_size])
+
+        # Define the values to be tested for pool_every and hidden_dims
+        pool_every_values = [1, 2, 3]  # Example values, adjust as needed
+        hidden_dims_values = [[25], [50], [100], [256], [512], [1024]]  # Example values, adjust as needed
+
+        best_accuracy = 0.0
+        best_pool_every = None
+        best_hidden_dims = None
+
+        for pool_every in pool_every_values:
+            for hidden_dims in hidden_dims_values:
+                # Train the model with the current pool_every and hidden_dims
+                fit_res = None
+                fit_res = create_model_and_fit(batches, channels, checkpoints, conv_params, device, dl_test, dl_train,
+                                               early_stopping, epochs, fit_res, hidden_dims, in_size, loss_fn, lr,
+                                               model_cls, num_out_classes, pool_every, pooling_params, reg)
+
+                # Evaluate the model on the test set
+                test_acc = fit_res.results.test_acc[-1]  # Assuming last accuracy is the final accuracy
+
+                # Check if the current configuration is better than the previous best
+                if test_acc > best_accuracy:
+                    best_accuracy = test_acc
+                    best_pool_every = pool_every
+                    best_hidden_dims = hidden_dims
+
+        # Save the best configuration to a file
+        best_config = {
+            "pool_every": best_pool_every,
+            "hidden_dims": best_hidden_dims,
+        }
+        save_best_config(run_name, out_dir, best_config)
+
+    else:
+
+        fit_res = create_model_and_fit(batches, channels, checkpoints, conv_params, device, dl_test, dl_train,
+                                       early_stopping, epochs, fit_res, hidden_dims, in_size, loss_fn, lr,
+                                       model_cls, num_out_classes, pool_every, pooling_params, reg)
+        # ========================
+
+        save_experiment(run_name, out_dir, cfg, fit_res)
+
+
+def create_model_and_fit(batches, channels, checkpoints, conv_params, device, dl_test, dl_train, early_stopping, epochs,
+                         fit_res, hidden_dims, in_size, loss_fn, lr, model_cls, num_out_classes, pool_every,
+                         pooling_params, reg):
     model = model_cls(in_size, num_out_classes, channels, pool_every, hidden_dims, conv_params=conv_params,
                       pooling_params=pooling_params)
     optimizer = torch.optim.Adam(params=model.parameters(), lr=lr, weight_decay=reg)
@@ -141,9 +193,7 @@ def cnn_experiment(
     trainer = ClassifierTrainer(classifier, loss_fn, optimizer, device)
     fit_res = trainer.fit(dl_train, dl_test, epochs, checkpoints, early_stopping,
                           max_batches=batches)  # max_batches is used inside _foreach_batch in training.
-    # ========================
-
-    save_experiment(run_name, out_dir, cfg, fit_res)
+    return fit_res
 
 
 def _create_channels_cnn_experiment(layers_per_block, filters_per_layer):
@@ -167,6 +217,15 @@ def save_experiment(run_name, out_dir, cfg, fit_res):
         json.dump(output, f, indent=2)
 
     print(f"*** Output file {output_filename} written")
+
+
+def save_best_config(run_name, out_dir, best_config):
+    output_filename = f"{os.path.join(out_dir, run_name)}_best_config.json"
+    os.makedirs(out_dir, exist_ok=True)
+    with open(output_filename, "w") as f:
+        json.dump(best_config, f, indent=2)
+
+    print(f"*** Best configuration saved to: {output_filename}")
 
 
 def load_experiment(filename):
@@ -295,7 +354,6 @@ def parse_cli():
 
 
 if __name__ == "__main__":
-    cnn_experiment()
     parsed_args = parse_cli()
     subcmd_fn = parsed_args.subcmd_fn
     del parsed_args.subcmd_fn
