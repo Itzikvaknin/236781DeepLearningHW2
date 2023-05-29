@@ -72,7 +72,7 @@ def mlp_experiment(
 def cnn_experiment(
         run_name,
         out_dir="./results",
-        seed=43, #Originally None
+        seed=None,
         device=None,
         # Training params
         bs_train=128,
@@ -133,7 +133,7 @@ def cnn_experiment(
     in_size = ds_train[0][0].shape
     channels = _create_channels_cnn_experiment(layers_per_block, filters_per_layer)
     conv_params = dict(kernel_size=3, padding=1)
-    pooling_params = dict(kernel_size=2)
+    pooling_params = dict(kernel_size=2, padding=1)
     loss_fn = torch.nn.CrossEntropyLoss()
 
     if cross_validation:
@@ -174,7 +174,6 @@ def cnn_experiment(
         save_best_config(run_name, out_dir, best_config)
 
     else:
-
         fit_res = create_model_and_fit(batches, channels, checkpoints, conv_params, device, dl_test, dl_train,
                                        early_stopping, epochs, fit_res, hidden_dims, in_size, loss_fn, lr,
                                        model_cls, num_out_classes, pool_every, pooling_params, reg)
@@ -188,6 +187,7 @@ def create_model_and_fit(batches, channels, checkpoints, conv_params, device, dl
                          pooling_params, reg):
     model = model_cls(in_size, num_out_classes, channels, pool_every, hidden_dims, conv_params=conv_params,
                       pooling_params=pooling_params)
+    print(model)
     optimizer = torch.optim.Adam(params=model.parameters(), lr=lr, weight_decay=reg)
     classifier = ArgMaxClassifier(model).to(device)
     trainer = ClassifierTrainer(classifier, loss_fn, optimizer, device)
@@ -354,13 +354,37 @@ def parse_cli():
 
 
 if __name__ == "__main__":
-    #Experiment 1_1
-    ks = [32, 64]
-    ls = [2, 4, 8, 16]
-    for k in ks:
-        for l in ls:
-            cnn_experiment(run_name=f'exp1_1_L{l}_K{k}', filters_per_layer=[k], layers_per_block=l, pool_every=3,
-                           hidden_dims=[100])
+    # # Experiment 1_2
+    # ks = [[32], [64], [128]]
+    # ls = [8]
+    # for l in ls:
+    #     for k in ks:
+    #         cnn_experiment(run_name='exp1_2', filters_per_layer=k, layers_per_block=l, pool_every=4,
+    #                        hidden_dims=[512]*2, lr=1e-2, reg=0, early_stopping=5)
+
+    # #Experiment 1_3
+    # ks = [[64, 128]]
+    # ls = [2, 3]
+    # for l in ls:
+    #     for k in ks:
+    #         cnn_experiment(run_name='exp1_3', filters_per_layer=k, layers_per_block=l, pool_every=2,
+    #                        hidden_dims=[100], lr=1e-3, early_stopping=100)
+
+    # #Experimnt 1_4_1
+    # ks = [[32]]
+    # ls = [8, 16, 32]
+    # for l in ls:
+    #     for k in ks:
+    #         cnn_experiment(run_name='exp1_3', filters_per_layer=k, layers_per_block=l, pool_every=4,
+    #                        hidden_dims=[512]*2, lr=1e-3, early_stopping=5, model_type='resnet')
+
+    #Experiment_1_4_2
+    ks = [[64, 128, 256]]
+    ls = [2, 4, 8]
+    for l in ls:
+        for k in ks:
+            cnn_experiment(run_name='exp1_4', filters_per_layer=k, layers_per_block=l, pool_every=2,
+                           hidden_dims=[512]*2, lr=1e-3, early_stopping=5, model_type='resnet')
     parsed_args = parse_cli()
     subcmd_fn = parsed_args.subcmd_fn
     del parsed_args.subcmd_fn
