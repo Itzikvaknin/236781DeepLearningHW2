@@ -106,6 +106,8 @@ class Trainer(abc.ABC):
                 epochs_without_improvement = 0
             else:
                 epochs_without_improvement += 1
+            if early_stopping is not None and epochs_without_improvement >= early_stopping:
+                break
             #     # ========================
 
         return FitResult(actual_num_epochs, train_loss, train_acc, test_loss, test_acc)
