@@ -23,15 +23,10 @@ An equation: $e^{i\pi} -1 = 0$
 
 part1_q2 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+Yes. back-propagation is required in order to train neural networks with decent based optimization.
+The main reason is that it enables efficient computation of the gradients for each parameter of the network.
+Back-propagation uses the chain-rule to calculate the derivative of the loss w.r.t each parameter efficiently, without it 
+it would be very challenging and inefficient to calculate the gradient for each parameter of the network manually.
 """
 
 
@@ -53,7 +48,7 @@ def part2_optim_hp():
     wstd, lr_vanilla, lr_momentum, lr_rmsprop, reg, = (
         0.05,
         3e-2,
-        8e-3,
+        3e-3,
         0,
         1e-3,
     )
@@ -187,6 +182,9 @@ def part3_optim_hp():
 
 part3_q1 = r"""
 **Your answer:**
+1. As we can see the training loss is very close to zero, therefore we would say that 
+our model doesn't suffer from an high optimization error.
+2. 
 
 
 Write your answer using **markdown** and $\LaTeX$:
