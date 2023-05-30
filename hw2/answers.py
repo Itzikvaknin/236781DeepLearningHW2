@@ -220,29 +220,38 @@ FPR =  $\frac{{FP}}{{N}} = \frac{{0.0086}}{{0.0086 + 0.49}} = 0.017$<br>
 
 part3_q3 = r"""
 **Your answer:**
+1. In this case, since the patients immediately develop non-lethal symptoms and the treatment isn't expensive,
+we would rather have a low as possible FPR (because the diagnosis is expensive) even if it means a higher FNR.
+Therefore, we would rather use the previous default threshold (or find some other value on the curve) because according 
+to the confusion matrices it will lead to a lower FPR compared to the "optimal" point on the curve.
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. In this case we care more about sensitivity, and will prefer a low as possible FNR.
+But we also want a low FPR since the diagnosis is very expensive.
+Therefore we will want to use the optimal threshold on the roc curve since it minimizes both FPR and FNR.
 
 """
 
 
 part3_q4 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+1. With a depth of 1 we can observe that the increasing width doesn't have much affect and the model learns an almost linear 
+decision boundary.
+ With a depth of two we can see that a higher width creates a less linear decision boundary and increases the test accuracy.
+ With a depth of 4, we again see that increasing the width creates a non linear decision boundary, but increasing the width too much
+ starts to decrease the test accuracy.
+ <br>
+ 2. With a width of 2 we see that the decision boundary is almost linear and we get a poor test performance.
+  With width = 8, 32 we see that increasing the depth creates a less linear decision boundary and generally tends to improve test accuracy.
+  <br>
+  3. We see that the performance in the case of depth = 4, width = 8 is better then in the case: depth = 1, width = 32.
+  In addition, the learned decision boundary with depth = 1 is almost linear despite the model being very wide.
+  This may be explained by the tendency of depth to be more important when dealing with MLP models.
+  <br>
+  4. We can see from the confusion matrices that after the threshold selction
+  the TPR and TNR are roughly the same and the FNR and FPR are roughly the same.
+  We can also notice that the FNR decreased while the FPR increased.
+  The selection had a positive effect on the test accuracy, before the selection we had 
+  an accuracy of 86.5% and afterwards and accuracy of 90.8% (with depth = 4, width = 8)
 """
 # ==============
 # Part 4 (CNN) answers
