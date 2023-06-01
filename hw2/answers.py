@@ -367,15 +367,12 @@ An equation: $e^{i\pi} -1 = 0$
 
 part6_q1 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+1. The model performance was not good, in the first image it detected a surfboard which doesn't exist in the image and misclassified the two dolphins as persons.
+In the second image we can say that the performance was slightly better but still not good enough. 
+In terms of segmentation it performed poorly on the cat+dog in the left side of the image(which were segmented as the same object), but the classification was poor
+it misclassified two of the dogs as cats (one of them is segmented with the cat but the dog still takes most of the bounding box). 
+2. In the first image, we can see that the model doesn't contain a "dolphin" class, therefore it classified the dolphins as persons.
+In the second image, the objects in the image have a high overlap and are located very close to each other. Therefore, the model had a hard time to classify and segment the objects.
 """
 
 
@@ -395,14 +392,9 @@ An equation: $e^{i\pi} -1 = 0$
 
 part6_q3 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+1. In the first image (donuts) we can see that the model detected 3 donuts out of 5 possible, and it may be because the bluriness of the image, and the fact that the two other donuts are cropped.
+<br> In the second image we can see that the model did not detect the person in the image, and it may be because of the poor lighting in the image.
+<br> In the third image we can see that out of many possible forks, spoons and knives, the model detected only a single spoon, which demonstrating the affect of clutterness on the model performance. 
 
 """
 
