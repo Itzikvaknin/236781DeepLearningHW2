@@ -10,23 +10,22 @@ math (delimited with $$).
 
 part1_q1 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+1. the Jacobian tensor would have the shape $512 \times 64 \times 1024 \times 64$. Each entry of the tensor corresponds to the partial derivative $\frac{\partial Y_{i,j}}{\partial X_{n,m}}$, where $i$ ranges from 1 to 512, $j$ ranges from 1 to 64, $n$ ranges from 1 to 1024, and $m$ ranges from 1 to 64. 
+2. We model the formula as $Y = W^{T} \cdot X$, where $W \in \mathbb{R}^{1024 \times 512}$ and $X \in \mathbb{R}^{1024 \times 64}$.
+The Jacobian tensor is the $\frac{\partial Y_{i,j}}{\partial X_{n,m}}$. However, $Y_{i,j}$ is equal to the dot product of row $i$ of $W$ and column $j$ of $X$. This means that $Y_{i,j}$ is not dependent on the entries of $X$ that are not in column $j$, and therefore it is sparse.
+3. No, we do not need to materialize the Jacobian tensor in order to calculate the downstream gradient $\delta\mat{X}$ without explicitly forming the Jacobian. Instead, we can directly compute it using the chain rule.
+Given the gradient of the output with respect to the scalar loss, $\delta\mat{Y} = \frac{\partial L}{\partial \mat{Y}}$, we can calculate the downstream gradient $\delta\mat{X}$ as follows:
+$\delta\mat{X} = \frac{\partial L}{\partial \mat{X}} = \delta\mat{Y} \cdot W^\top$
+Here, $\delta\mat{Y}$ is the given gradient and $W^\top$ represents the transpose of the weight matrix $W$. This computation avoids the need to explicitly materialize the Jacobian tensor and is more computationally efficient.
 """
 
 part1_q2 = r"""
 **Your answer:**
-Yes. back-propagation is required in order to train neural networks with decent based optimization.
-The main reason is that it enables efficient computation of the gradients for each parameter of the network.
-Back-propagation uses the chain-rule to calculate the derivative of the loss w.r.t each parameter efficiently, without it 
-it would be very challenging and inefficient to calculate the gradient for each parameter of the network manually.
+
+Backpropagation is crucial for training neural networks efficiently. Compared to a naive Jacobian-based method that computes gradients, backpropagation significantly reduces the number of computation steps required to calculate gradients in deep neural networks. Backpropagation achieves computational savings by efficiently reusing intermediate results, and avoiding unnecessary calculations as we saw in question 1, resulting in a more efficient and scalable approach for gradient computation
+For instance, consider a deep neural network with 100 layers. In a naive Jacobian-based method, to calculate the gradients of the loss function with respect to the input, we would need to compute the full Jacobian matrix. This matrix would have dimensions that grow exponentially with the number of layers, making the computation infeasible.
+
+
 """
 
 
@@ -48,7 +47,7 @@ def part2_optim_hp():
     wstd, lr_vanilla, lr_momentum, lr_rmsprop, reg, = (
         0.05,
         3e-2,
-        3e-3,
+        8e-3,
         0,
         1e-3,
     )
