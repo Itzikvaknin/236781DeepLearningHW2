@@ -223,7 +223,7 @@ def select_roc_thresh(
     # ====== YOUR CODE: ======
     y_prob_of_positive_class = classifier.predict_proba(x)[:, 1]
     fpr, tpr, thresholds = roc_curve(y.numpy(), y_prob_of_positive_class.detach().numpy())
-    optimal_thresh_idx = np.argmax(tpr - fpr)
+    optimal_thresh_idx = np.argmin((1 - tpr)**2 + fpr**2)
     optimal_thresh = thresholds[optimal_thresh_idx]
     # ========================
 
