@@ -17,6 +17,7 @@ The Jacobian tensor is the $\frac{\partial Y_{i,j}}{\partial X_{n,m}}$. However,
 Given the gradient of the output with respect to the scalar loss, $\delta\mat{Y} = \frac{\partial L}{\partial \mat{Y}}$, we can calculate the downstream gradient $\delta\mat{X}$ as follows:
 $\delta\mat{X} = \frac{\partial L}{\partial \mat{X}} = \delta\mat{Y} \cdot W^\top$
 Here, $\delta\mat{Y}$ is the given gradient and $W^\top$ represents the transpose of the weight matrix $W$. This computation avoids the need to explicitly materialize the Jacobian tensor and is more computationally efficient.
+
 """
 
 part1_q2 = r"""
@@ -372,6 +373,7 @@ In the second image we can say that the performance was slightly better but stil
 In terms of segmentation it performed poorly on the cat+dog in the left side of the image(which were segmented as the same object), but the classification was poor
 it misclassified two of the dogs as cats (one of them is segmented with the cat but the dog still takes most of the bounding box). 
 2. In the first image, we can see that the model doesn't contain a "dolphin" class, therefore it classified the dolphins as persons.
+
 In the second image, the objects in the image have a high overlap and are located very close to each other. Therefore, the model had a hard time to classify and segment the objects.
 """
 
