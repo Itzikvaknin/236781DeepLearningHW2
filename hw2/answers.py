@@ -139,6 +139,15 @@ This leads to several differences in the behavior and performance of the algorit
 
 part2_q4 = r"""
 **Your answer:**
+
+
+Write your answer using **markdown** and $\LaTeX$:
+```python
+# A code block
+a = 2
+```
+An equation: $e^{i\pi} -1 = 0$
+
 """
 
 # ==============
