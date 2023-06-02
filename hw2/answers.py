@@ -309,54 +309,55 @@ An equation: $e^{i\pi} -1 = 0$
 
 part5_q1 = r"""
 **Your answer:**
+In general, depth enriches the model class complexity.
+On one hand, higher depth (i.e higher model complexity) has more chance to better fit the underlying distribution.
+On the other hand, a too deep network might suffer from conditions such as over-fitting, vanishing gradients and make optimization harder
+(since the parameter space becomes more non-convex), which may lead to worse generalization. 
+We can see that for experiment 1.1 for both k= 32 and k = 64 the network with L=4 achieved better test and train accuracy, compared to all others.
+In addition, we see that in all cases except for the test loss for k = 32, the L=4 network had the lowest loss.
+Moreover, for depths L = 8 and L = 16 the networks were not trainable. We believe that this might be due to vanishing gradients, 
+which will also explain the non changing loss for these networks.
 
+The issue of vanishing gradients can be solved using the two following methods:
+1.Adding skip connections, allowing gradients to flow directly across different layers and preventing them from vanishing during backpropagation.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+2.Batch Normalization: Introduce batch normalization layers to normalize the activations within each mini-batch.
 """
 
 part5_q2 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+In this experiment, for L=2 the network with K=32 achieved the best test accuracy, though not by a very large amount.
+On the other hand, for L=4 we see that a higher number of filters per layer led to better test accuracy, we can see that networks with
+K= 64 or K = 128 achieved around 5% more test accuracy compared to K = 32.
+For L = 8 we again see that the network was not trainable, which reassures our assumption from experiment 1.1 that 
+the depth is what causes the un-trainability of the network rather then the number of filters. 
+(This can also be due to a non-optimal choice of hyperparameter from our side, and maybe there is a combination of hyperparameters 
+which will make the deeper networks trainable as well).
 
 """
 
 part5_q3 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+We see that the highest test accuracy (in this experiment and also compared to 1.1 and 1.2) is for the network with L=3,
+achieving close to 80% accuracy.
+We also see that the network with L = 4, was not trainable, this due to the network having in practice 8 convolutional layers,
+which as we've seen in previous experiments can be due to the problem of vanishing gradients in deep neural networks.
+The better performance compared to experiments 1.1 and 1.2 can be due to the usage of a varying number of filters 
+in the convolutional layers, and in particular the last 3 layers are wider then the first 3.
+Like we have seen in the lectures, in real world CNN models the deeper convolutional layers often are wider (more filters).
+In this experiment we also changed the pool_every parameter to 2 instead of 3 like in previous experiments since from our testing this value produced better results.
 """
 
 part5_q4 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+We see that all models trained in this experiment have a better generalization compared to experiment 1.1
+But compared to experiment 1.3 they perform worse or the same. 
+The major noticeable thing in this experiment in our opinion is the fact that previous un-trainable deep networks are now trainable.
+We believe that due to this, and the fact that in general deeper networks tend to have better generalization capabilities, with a more careful
+decision of hypermarkets (and maybe even architecture) we could outperform the results from 1.3.
+For this experiment we chose to again change the pool_every parameter, int the first configuration we used pool_every = 4 and 
+for the second configuration we used pool_every = 2. We also made the the fully connected part wider and deeper which from out 
+test runs had made the models to have better test accuracy.
 """
 
 

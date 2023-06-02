@@ -362,13 +362,13 @@ if __name__ == "__main__":
     #         cnn_experiment(run_name='exp1_2', filters_per_layer=k, layers_per_block=l, pool_every=4,
     #                        hidden_dims=[512]*2, lr=1e-2, reg=0, early_stopping=5)
 
-    # #Experiment 1_3
-    # ks = [[64, 128]]
-    # ls = [2, 3]
-    # for l in ls:
-    #     for k in ks:
-    #         cnn_experiment(run_name='exp1_3', filters_per_layer=k, layers_per_block=l, pool_every=2,
-    #                        hidden_dims=[100], lr=1e-3, early_stopping=100)
+    #Experiment 1_3
+    ks = [[64, 128]]
+    ls = [2, 3]
+    for l in ls:
+        for k in ks:
+            cnn_experiment(run_name='test1_3', filters_per_layer=k, layers_per_block=l, pool_every=2,
+                           hidden_dims=[100], lr=1e-3, early_stopping=100, epochs=1)
 
     # #Experimnt 1_4_1
     # ks = [[32]]
@@ -378,13 +378,13 @@ if __name__ == "__main__":
     #         cnn_experiment(run_name='exp1_3', filters_per_layer=k, layers_per_block=l, pool_every=4,
     #                        hidden_dims=[512]*2, lr=1e-3, early_stopping=5, model_type='resnet')
 
-    #Experiment_1_4_2
-    ks = [[64, 128, 256]]
-    ls = [2, 4, 8]
-    for l in ls:
-        for k in ks:
-            cnn_experiment(run_name='exp1_4', filters_per_layer=k, layers_per_block=l, pool_every=2,
-                           hidden_dims=[512]*2, lr=1e-3, early_stopping=5, model_type='resnet')
+    # #Experiment_1_4_2
+    # ks = [[64, 128, 256]]
+    # ls = [2, 4, 8]
+    # for l in ls:
+    #     for k in ks:
+    #         cnn_experiment(run_name='exp1_4', filters_per_layer=k, layers_per_block=l, pool_every=2,
+    #                        hidden_dims=[512]*2, lr=1e-3, early_stopping=5, model_type='resnet')
     parsed_args = parse_cli()
     subcmd_fn = parsed_args.subcmd_fn
     del parsed_args.subcmd_fn
