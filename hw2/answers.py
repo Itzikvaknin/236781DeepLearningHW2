@@ -140,15 +140,59 @@ This leads to several differences in the behavior and performance of the algorit
 
 part2_q4 = r"""
 **Your answer:**
+1. A. With f expressed as a computational graph, we can reduce the memory complexity to $O(1)$ using forward mode AD.
+(As we saw in the tutorial, using dynamic programming we can achieve a memory complexity of $O(n)$ when f isn't expressed 
+as a computational graph).
+Since we already have the computational graph we can compute the gradient using only two temporary variables.
+We'll show a pseudocode algorithm for computing the gradient:
 
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+$\textbf{Init:}$   
 
+
+$temp\_val = x_0$  
+
+
+$temp\_grad = 1$   
+
+
+
+for i = 1 to n: <br>
+    $temp\_grad = temp\_grad \cdot v_i.grad(temp\_val)$ <br>
+    $temp\_val = v_i(temp\_val)$ <br>
+
+$\textbf{end for}$ <br>
+
+return $temp\_grad$ <br> 
+
+Since we use only 2 temporary variables, the memory complexity is $O(1)$
+
+B. Now since f is expressed as a computational graph, we can perform a forward pass like we saw in the tutorial to compute the value of $f_i$ at each node $v_i$
+Again, lets look at a pseudocode:
+
+1. perform forward pass
+
+2. $temp\_grad = 1$  
+
+3. for i = n-1 to 0: <br>
+    $temp\_grad = temp\_grad \cdot v_{i+1}.grad(v_i.val))$ <br>
+
+$\textbf{end for}$ <br>
+
+return $temp\_grad$ <br> 
+
+This results in a memory complexity of $O(n)$, since for every node we need to store the .val field.
+If the results of the forward pass are already given to us in the computational graph, we can skip step 1 and by that reduce the additional memory complexity to $O(1)$.
+
+2. It can be difficult to extend these methods to arbitrary computational graphs.
+   The fundamental assumption underlying these methods is that the computational graph can be divided into separate blocks that are stacked together.
+   However, identifying such elements in arbitrary graphs proves to be a challenging task.
+
+3. The application of these methods to deep architecture can enhance the effectiveness of the backpropagation algorithm.
+ 
+   By selectively retaining the gradients necessary for subsequent computations, we can leverage the concept of deep architecture consisting of interconnected blocks stacked upon one another.
+  
+   Thus, we can view these blocks as external nodes and make relevant connections.
 """
 
 # ==============
@@ -290,19 +334,58 @@ def part4_optim_hp():
 
 part4_q1 = r"""
 **Your answer:**
+1. Number of parameters in:
+    1. Regular block:<br>
+        $ 64 \cdot (256 \cdot 3^2 + 1) + 256 \cdot (64 \cdot 3^2  + 1) = 295232$<br>
+    2. Bottleneck block:<br>
+        $ 64 \cdot (256 \cdot 1^2 + 1) + 64 \cdot (64 \ cdot 3^2 + 1) + 256 \cdot (64 \cdot 1^2 + 1) = 70016$<br>
+        
+<br>
+2. A single entry in feature map takes: $ K^2 \cdot C_{input} $ where K is the size of the convolution filter and $C_{input}$
+    is the number of input channels.
+    If we assume that the dimensions of the input image are not changed by the convolutional layers, then each convolution layer 
+    will take approximately (neglecting bias terms since we're interested in a qualitative assessment):<br>
+    $ W \cdot H \cdot C_{output} \cdot K^2 \cdot C_{input} $. <br>
+    Where, W, H and $C_{output}$ are width, height and number of output channels respectively.
+    Therefore, we get:
+    <br>
+    For regular block:
+    $ (W \cdot H \cdot 64 \cdot 3^2 \cdot 256) + (W \cdot H \cdot 256 \cdot 3^2 \cdot 64) = 294912 W \cdot H \approx 3\cdot 10^5 W \cdot H $ floating point operations.
+    <br>
+    For bottleneck block:
+    $ (W \cdot H \cdot 64 \cdot 1^2 \cdot 256) + (W \cdot H \cdot 64 \cdot 3^2 \cdot 64) + (W \cdot H \cdot 256 \cdot 1^2 \cdot 64) = 69632 W \cdot H \approx 70000 W \cdot H $ floating point operations.
+    <br>
+    We see that the bottleneck block requires around 4 times less floating point operations compared to the regular block.
+    <br>
+    
+    3. We first note that every convolutional layer, combines the input across feature maps.<br>
+In addition, a 1x1 convolution layer, doesn't combine features spatially, since each entry in the output of the layer is a dot products of all the input channels in a specific spatial location.<br>
+Therefore the regular residual block and the bottleneck block differ in the following ways:
+<br>
 
+Ability to combine input spatially within feature maps:
+<br>
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+Regular residual block: The regular residual block can combine the input spatially within feature maps in both of its convolutional layers.<br>
 
+Bottleneck block: In the bottleneck block, the ability to combine input spatially within feature maps is only present in the second convolutional layer.
+ The first and third convolutional layers in the bottleneck block do not combine input spatially within feature maps.<br>
+ 
+Ability to combine input across feature maps:
+<br>
+
+Regular residual block: The regular residual block combines the input across feature maps in both of its convolutional layers.<br>
+
+Bottleneck block: Similar to the regular residual block, the bottleneck block also combines the input across feature maps in both the second convolutional layer and the first and third convolutional layers.
+<br>
+
+In summary:<br>
+
+The regular residual block combines input both spatially within feature maps and across feature maps in both of its convolutional layers.
+The bottleneck block combines input spatially within feature maps only in the second convolutional layer, while it combines input across feature maps in all three convolutional layers.
 """
 
 # ==============
-
 # ==============
 # Part 5 (CNN Experiments) answers
 
