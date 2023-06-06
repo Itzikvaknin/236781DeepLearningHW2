@@ -486,13 +486,12 @@ part6_q3 = r"""
 
 part6_bonus = r"""
 **Your answer:**
+We managed to improve the first and second images.
+In the donut image (first one) we applied gaussian blur to the image, which helped YOLO to detect new donuts in the image correctly, improved the confidence on previously detected donuts and helped the model 
+to classify the donut in the middle (that originally was classified as a cake) correctly.
+<br>
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+On the dark image(the second one) we applied a mask to the human in the image and increased the exposure (lightness) of everything besides the masked person.
+This resulted with a higher contrast between the person we want to detect and the background which helped the model to detect a previously undetectable person in the image.
 
 """
