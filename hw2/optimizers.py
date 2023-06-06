@@ -91,7 +91,7 @@ class MomentumSGD(Optimizer):
 
         # TODO: Add your own initializations as needed.
         # ====== YOUR CODE: ======
-        self.momentum_cache = {param:0 for param, _ in params}
+        self.momentum_cache = {param: 0 for param, _ in params}
         # ========================
 
     def step(self):
@@ -129,7 +129,7 @@ class RMSProp(Optimizer):
 
         # TODO: Add your own initializations as needed.
         # ====== YOUR CODE: ======
-
+        self.state = {p: torch.zeros_like(p) for p, _ in params}
         # ========================
 
     def step(self):
@@ -142,5 +142,9 @@ class RMSProp(Optimizer):
             # average of it's previous gradients. Use it to update the
             # parameters tensor.
             # ====== YOUR CODE: ======
-
+            moving_avg = self.decay * self.state[p] + (1-self.decay) * (dp ** 2)
+            per_parameter_lr = self.learn_rate / (torch.sqrt(moving_avg + self.eps))
+            step = -per_parameter_lr * (dp + (self.reg * p))
+            p += step
+            self.state[p] = moving_avg
             # ========================
